@@ -15,14 +15,16 @@ public class PlayerController : MonoBehaviour
     [Header("Engines")]
     public ParticleSystem[] engines;
 
+    [Header("World Bounds")]
+    public Vector2 minBounds = new Vector2(-8f, -4.5f);
+    public Vector2 maxBounds = new Vector2(8f, 4.5f);
+
     private Rigidbody2D rb;
     private Vector2 moveInput;
-    private Camera mainCam;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        mainCam = Camera.main;
         rb.gravityScale = 0;
         rb.linearDamping = 0;
         rb.interpolation = RigidbodyInterpolation2D.Interpolate;
@@ -57,11 +59,11 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        rb.linearVelocity = moveInput.normalized * moveSpeed;
-        Vector3 viewPos = mainCam.WorldToViewportPoint(transform.position);
-        viewPos.x = Mathf.Clamp(viewPos.x, 0.05f, 0.95f);
-        viewPos.y = Mathf.Clamp(viewPos.y, 0.05f, 0.95f);
-        transform.position = mainCam.ViewportToWorldPoint(viewPos);
+        Vector2 desiredVelocity = moveInput.normalized * moveSpeed;
+        Vector2 nextPos = rb.position + desiredVelocity * Time.fixedDeltaTime;
+        nextPos.x = Mathf.Clamp(nextPos.x, minBounds.x, maxBounds.x);
+        nextPos.y = Mathf.Clamp(nextPos.y, minBounds.y, maxBounds.y);
+        rb.linearVelocity = (nextPos - rb.position) / Time.fixedDeltaTime;
     }
 
     Vector3 GetFirePosition()
